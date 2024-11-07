@@ -1,5 +1,6 @@
 <template>
   <div class="contents">
+    <VOnboardingWrapper ref="wrapper" :steps="steps" />
     <div
       v-if="server.error && server.error.message.includes('Forbidden')"
       class="flex min-h-[calc(100vh-4rem)] items-center justify-center text-contrast"
@@ -105,6 +106,7 @@
           </div>
 
           <UiServersServerInfoLabels
+            id="onboarding-server-info"
             :server-data="serverData"
             :show-game-label="showGameLabel"
             :show-loader-label="showLoaderLabel"
@@ -244,6 +246,32 @@
           :server="server"
           @reinstall="onReinstall"
         />
+
+        <Transition name="onboarding-banner">
+          <div
+            data-pyro-onboarding-banner
+            class="fixed bottom-16 left-0 right-0 z-[6] mx-auto h-fit w-full max-w-4xl transition-all duration-300 sm:bottom-8"
+          >
+            <div
+              class="mx-2 rounded-2xl border-2 border-solid border-button-border bg-bg-raised p-4"
+            >
+              <div class="flex flex-col items-center justify-between gap-2 md:flex-row">
+                <span class="font-bold text-contrast"
+                  >Welcome to your modrinth server! Would you like to go through a quick
+                  setup?</span
+                >
+                <div class="flex gap-2">
+                  <ButtonStyled type="transparent" color="standard">
+                    <button @click="start">Skip</button>
+                  </ButtonStyled>
+                  <ButtonStyled color="brand">
+                    <button @click="start">Yes</button>
+                  </ButtonStyled>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Transition>
       </div>
 
       <UiServersPoweredByPyro />
@@ -265,6 +293,8 @@ import {
 import DOMPurify from "dompurify";
 import { ButtonStyled } from "@modrinth/ui";
 import { refThrottled } from "@vueuse/core";
+import { VOnboardingWrapper, useVOnboarding } from "v-onboarding";
+import "v-onboarding/dist/style.css";
 import type { ServerState, Stats, WSEvent, WSInstallationResultEvent } from "~/types/servers";
 
 const socket = ref<WebSocket | null>(null);
@@ -295,6 +325,25 @@ watch(
     }
   },
 );
+
+const steps = [
+  {
+    attachTo: { element: "#onboarding-server-info" },
+    content: {
+      title: "Welcome to your modrinth server!",
+      description: "Here you can find all the info about your server at a glance.",
+    },
+  },
+  {
+    attachTo: { element: "#onboarding-server-actions" },
+    content: {
+      title: "Server actions",
+      description: "Here you can manage your server, including backups, mods, and more.",
+    },
+  },
+];
+const wrapper = ref(null);
+const { start, goToStep, finish } = useVOnboarding(wrapper);
 
 const errorTitle = ref("Error");
 const errorMessage = ref("An unexpected error occurred.");
@@ -819,5 +868,45 @@ definePageMeta({
       rgb(from var(--color-raised-bg) r g b / 0.8)
     ),
     var(--server-bg-image);
+}
+
+.onboarding-banner-enter-active {
+  transition:
+    opacity 300ms,
+    transform 300ms;
+}
+
+.onboarding-banner-leave-active {
+  transition:
+    opacity 200ms,
+    transform 200ms;
+}
+
+.onboarding-banner-enter-from,
+.onboarding-banner-leave-to {
+  opacity: 0;
+  transform: translateY(100%) scale(0.98);
+}
+
+.onboarding-banner-enter-to,
+.onboarding-banner-leave-from {
+  opacity: 1;
+  transform: none;
+}
+</style>
+
+<style>
+:root {
+  --v-onboarding-step-arrow-background: #f5f5f500;
+}
+
+.v-onboarding-btn-primary {
+  background-color: var(--color-brand) !important;
+  border-radius: 0.5rem !important;
+}
+
+.v-onboarding-item {
+  background-color: var(--color-raised-bg) !important;
+  border-radius: 0.5rem !important;
 }
 </style>

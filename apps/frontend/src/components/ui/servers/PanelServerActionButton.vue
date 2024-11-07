@@ -45,7 +45,7 @@
       </ButtonStyled>
     </NewModal>
 
-    <div class="flex flex-row items-center gap-2 rounded-lg">
+    <div id="onboarding-server-actions" class="flex flex-row items-center gap-2 rounded-lg">
       <ButtonStyled v-if="isInstalling" type="standard" color="brand">
         <button disabled class="flex-shrink-0">
           <UiServersPanelSpinner class="size-5" /> Installing...
